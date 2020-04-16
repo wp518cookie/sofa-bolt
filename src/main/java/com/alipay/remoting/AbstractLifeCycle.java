@@ -16,25 +16,34 @@
  */
 package com.alipay.remoting;
 
+import java.util.concurrent.atomic.AtomicBoolean;
+
 /**
- * Connection heart beat manager, operate heart beat whether enabled for a certain connection at runtime
- * 
- * @author xiaomin.cxm
- * @version $Id: ConnectionHeartbeatManager.java, v 0.1 Apr 12, 2016 6:55:56 PM xiaomin.cxm Exp $
+ * @author chengyi (mark.lx@antfin.com) 2018-11-05 14:43
  */
-public interface ConnectionHeartbeatManager {
+public abstract class AbstractLifeCycle implements LifeCycle {
 
-    /**
-     * disable heart beat for a certain connection
-     * 
-     * @param connection Connection
-     */
-    void disableHeartbeat(Connection connection);
+    private final AtomicBoolean isStarted = new AtomicBoolean(false);
 
-    /**
-     * enable heart beat for a certain connection
-     * 
-     * @param connection Connection
-     */
-    void enableHeartbeat(Connection connection);
+    @Override
+    public void startup() throws LifeCycleException {
+        if (isStarted.compareAndSet(false, true)) {
+            return;
+        }
+        throw new LifeCycleException("this component has started");
+    }
+
+    @Override
+    public void shutdown() throws LifeCycleException {
+        if (isStarted.compareAndSet(true, false)) {
+            return;
+        }
+        throw new LifeCycleException("this component has closed");
+    }
+
+    @Override
+    public boolean isStarted() {
+        return isStarted.get();
+    }
+
 }
